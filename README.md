@@ -34,9 +34,12 @@ mysql-learning-notes/
 │   ├── exercise-04-comprehensive/     # 综合练习
 │   │   ├── README.md
 │   │   └── exercise-04-answers.sql
-│   └── exercise-05-join/              # JOIN 关联查询 ⭐ 新增
+│   ├── exercise-05-join/              # JOIN 关联查询
+│   │   ├── README.md
+│   │   └── exercise-05-answers.sql
+│   └── exercise-06-subquery-view/     # 子查询、视图与临时表 ⭐ 新增
 │       ├── README.md
-│       └── exercise-05-answers.sql
+│       └── exercise-06-answers.sql
 ├── notes/                             # 学习笔记
 │   └── key-points.md                  # 知识点总结
 ├── mistakes/                          # 错题总结
@@ -95,6 +98,41 @@ mysql-learning-notes/
 | quantity | INT | 数量 |
 | price | DECIMAL(10,2) | 单价 |
 
+### 子查询、视图与临时表练习数据库 (sql_study_db3)
+
+#### users（用户表）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| user_id | INT | 主键 |
+| username | VARCHAR(20) | 用户名 |
+| city | VARCHAR(20) | 城市 |
+
+#### orders（订单表）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| order_id | INT | 主键 |
+| user_id | INT | 用户ID（外键） |
+| amount | DECIMAL(10,2) | 订单金额 |
+| create_time | DATE | 创建时间 |
+| status | VARCHAR(10) | 订单状态 |
+
+#### order_items（订单明细表）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| item_id | INT | 主键 |
+| order_id | INT | 订单ID（外键） |
+| product_name | VARCHAR(50) | 商品名称 |
+| quantity | INT | 数量 |
+| price | DECIMAL(10,2) | 单价 |
+
+#### products（商品表）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| product_id | INT | 主键 |
+| product_name | VARCHAR(50) | 商品名称 |
+| price | DECIMAL(10,2) | 价格 |
+| category | VARCHAR(20) | 分类 |
+
 ---
 
 ## 🚀 快速开始
@@ -120,7 +158,8 @@ source setup/init.sql
 | ORDER BY + 聚合函数 | 15 | ⭐⭐ 基础 |
 | GROUP BY + HAVING | 10 | ⭐⭐⭐ 进阶 |
 | 综合练习 | 20 | ⭐⭐⭐⭐ 综合 |
-| **JOIN 关联查询** | **18** | **⭐⭐⭐ 进阶** |
+| JOIN 关联查询 | 18 | ⭐⭐⭐ 进阶 |
+| **子查询、视图与临时表** | **15** | **⭐⭐⭐ 进阶** |
 
 ---
 
@@ -166,7 +205,8 @@ source setup/init.sql
 ## 📅 学习日期
 
 - **2026-05-21：基础查询、聚合函数、分组统计**
-- **2026-05-26：JOIN 关联查询** ⭐
+- **2026-05-26：JOIN 关联查询**
+- **2026-05-27：子查询、视图与临时表** ⭐
 
 ---
 

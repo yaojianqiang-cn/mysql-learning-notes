@@ -139,4 +139,106 @@ SELECT * FROM orders_join;
 SELECT '订单明细表数据' AS info;
 SELECT * FROM order_items;
 
+-- ============================================
+-- SQL 子查询、视图与临时表练习数据库初始化
+-- 数据库: sql_study_db3
+-- 包含: 用户表、订单表、订单明细表、商品表
+-- ============================================
+
+CREATE DATABASE IF NOT EXISTS sql_study_db3;
+USE sql_study_db3;
+
+-- 删除已存在的表（重新初始化）
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS users;
+
+-- ============================================
+-- 1. 用户表 (users)
+-- ============================================
+CREATE TABLE users (
+    user_id INT PRIMARY KEY COMMENT '用户ID',
+    username VARCHAR(20) COMMENT '用户名',
+    city VARCHAR(20) COMMENT '城市'
+) COMMENT='用户表';
+
+INSERT INTO users VALUES
+(1, '张三', '北京'),
+(2, '李四', '上海'),
+(3, '王五', '深圳'),
+(4, '赵六', '广州'),
+(5, '钱七', '北京');
+
+-- ============================================
+-- 2. 订单表 (orders)
+-- ============================================
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY COMMENT '订单ID',
+    user_id INT COMMENT '用户ID',
+    amount DECIMAL(10,2) COMMENT '订单金额',
+    create_time DATE COMMENT '创建时间',
+    status VARCHAR(10) COMMENT '订单状态'
+) COMMENT='订单表';
+
+INSERT INTO orders VALUES
+(101, 1, 150.50, '2025-01-01', '已完成'),
+(102, 2, 200.00, '2025-01-02', '已完成'),
+(103, 1, 99.00, '2025-01-03', '已取消'),
+(104, 3, 350.75, '2025-01-01', '已完成'),
+(105, 2, 50.20, '2025-01-06', '已完成'),
+(106, 4, 400.00, '2025-01-10', '已取消'),
+(107, 1, 270.30, '2025-01-15', '已完成'),
+(108, 5, 120.00, '2025-01-15', '已完成');
+
+-- ============================================
+-- 3. 订单明细表 (order_items)
+-- ============================================
+CREATE TABLE order_items (
+    item_id INT PRIMARY KEY COMMENT '明细ID',
+    order_id INT COMMENT '订单ID',
+    product_name VARCHAR(50) COMMENT '商品名称',
+    quantity INT COMMENT '数量',
+    price DECIMAL(10,2) COMMENT '单价'
+) COMMENT='订单明细表';
+
+INSERT INTO order_items VALUES
+(1, 101, '笔记本', 1, 100.00),
+(2, 101, '笔', 2, 25.25),
+(3, 102, '键盘', 1, 200.00),
+(4, 104, '显示器', 1, 350.75),
+(5, 105, '鼠标', 1, 50.20),
+(6, 107, '耳机', 1, 270.30),
+(7, 108, '水杯', 2, 60.00);
+
+-- ============================================
+-- 4. 商品表 (products)
+-- ============================================
+CREATE TABLE products (
+    product_id INT PRIMARY KEY COMMENT '商品ID',
+    product_name VARCHAR(50) COMMENT '商品名称',
+    price DECIMAL(10,2) COMMENT '价格',
+    category VARCHAR(20) COMMENT '分类'
+) COMMENT='商品表';
+
+INSERT INTO products VALUES
+(1, '笔记本', 100.00, '数码'),
+(2, '键盘', 200.00, '数码'),
+(3, '鼠标', 50.20, '数码'),
+(4, '显示器', 350.75, '数码'),
+(5, '水杯', 60.00, '日用品');
+
+-- 验证数据
+SELECT '用户表数据' AS info;
+SELECT * FROM users;
+
+SELECT '订单表数据' AS info;
+SELECT * FROM orders;
+
+SELECT '订单明细表数据' AS info;
+SELECT * FROM order_items;
+
+SELECT '商品表数据' AS info;
+SELECT * FROM products;
+
 SELECT '数据库初始化完成!' AS message;

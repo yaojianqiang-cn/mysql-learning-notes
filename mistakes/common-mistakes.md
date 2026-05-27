@@ -293,6 +293,118 @@ WHERE 子句在 JOIN 之后执行，会把右表为 NULL 的记录过滤掉，�
 
 ---
 
+## 子查询常见错误
+
+### 错误10：标量子查询返回多行
+
+#### ❌ 错误示例
+```sql
+-- 错误：= 只能匹配单个值，子查询可能返回多行
+SELECT username FROM users
+WHERE user_id = (
+  SELECT user_id FROM orders 
+  WHERE order_id IN (
+    SELECT order_id FROM order_items WHERE product_name = '键盘'
+  )
+);
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：用 IN 适配多结果场景
+SELECT username FROM users
+WHERE user_id IN (
+  SELECT user_id FROM orders 
+  WHERE order_id IN (
+    SELECT order_id FROM order_items WHERE product_name = '键盘'
+  )
+);
+```
+
+#### 💡 原因分析
+`=` 用于标量子查询（返回单行单列），`IN` 用于列表子查询（返回多行）。当业务场景是"一对多"时，必须用 `IN`。
+
+---
+
+### 错误11：用 >= ALL 求最大值
+
+#### ❌ 错误示例
+```sql
+-- 错误：>= ALL 虽然能工作，但不符合练习目标
+SELECT * FROM orders WHERE amount >= ALL (SELECT amount FROM orders);
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：用 MAX() 标量子查询，逻辑更直观
+SELECT * FROM orders WHERE amount = (SELECT MAX(amount) FROM orders);
+```
+
+#### 💡 原因分析
+`MAX()` 是标准的求最大值函数，语义清晰，且更符合 WHERE 子查询的练习目标。
+
+---
+
+### 错误12：内层子查询用 HAVING 过滤
+
+#### ❌ 错误示例
+```sql
+-- 错误：不符合 FROM 子句子查询 + WHERE 的要求
+SELECT * FROM (
+    SELECT u.username, SUM(o.amount) tl_amount
+    FROM users u JOIN orders o ON u.user_id = o.user_id
+    GROUP BY u.username
+    HAVING tl_amount > 200
+) t;
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：派生表 + 外层 WHERE 过滤
+SELECT * FROM (
+    SELECT u.username, SUM(o.amount) tl_amount
+    FROM users u JOIN orders o ON u.user_id = o.user_id
+    GROUP BY u.username
+) t WHERE t.tl_amount > 200;
+```
+
+#### 💡 原因分析
+题目要求 FROM 子句子查询 + WHERE，核心是先通过子查询生成派生表，再对派生表进行过滤，而不是在内层用 HAVING 直接过滤。
+
+---
+
+### 错误13：视图字段歧义，未加别名
+
+#### ❌ 错误示例
+```sql
+-- 错误：amount 字段有歧义（订单金额还是商品单价？）
+CREATE VIEW v_order_detail AS
+SELECT o.order_id, u.username, oi.product_name, oi.quantity, o.amount
+FROM orders o 
+JOIN users u ON o.user_id = u.user_id 
+JOIN order_items oi ON o.order_id = oi.order_id;
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：加别名消除歧义
+CREATE OR REPLACE VIEW v_order_detail AS
+SELECT 
+  o.order_id AS 订单号, 
+  u.username AS 用户姓名, 
+  oi.product_name AS 商品名, 
+  oi.quantity AS 数量, 
+  o.amount AS 订单总金额
+FROM orders o 
+JOIN users u ON o.user_id = u.user_id 
+JOIN order_items oi ON o.order_id = oi.order_id;
+```
+
+#### 💡 原因分析
+视图字段应尽量用别名消除歧义，同时 `CREATE OR REPLACE VIEW` 是更规范的写法，避免视图已存在时报错。
+
+---
+
 ## 错误速查表
 
 | 错误现象 | 可能原因 | 解决方案 |
@@ -303,6 +415,9 @@ WHERE 子句在 JOIN 之后执行，会把右表为 NULL 的记录过滤掉，�
 | IFNULL 语法错误 | 中间有空格或参数过多 | 写成 IFNULL(expr, 0)，只传两个参数 |
 | 缺少无订单用户 | 用了 INNER JOIN | 改用 LEFT JOIN |
 | 关联结果不对 | 表别名引用错误 | 检查表别名和关联条件 |
+| 子查询返回多行 | 用 = 而不是 IN | 列表子查询用 IN，标量子查询用 = |
+| 视图创建失败 | 视图已存在 | 用 CREATE OR REPLACE VIEW |
+| 字段歧义 | 多表有同名字段 | 加别名明确字段含义 |
 
 ---
 
@@ -311,3 +426,4 @@ WHERE 子句在 JOIN 之后执行，会把右表为 NULL 的记录过滤掉，�
 - [练习三：GROUP BY + HAVING](../exercises/exercise-03-group-having/)
 - [练习四：综合练习](../exercises/exercise-04-comprehensive/)
 - [练习五：JOIN 关联查询](../exercises/exercise-05-join/)
+- [练习六：子查询、视图与临时表](../exercises/exercise-06-subquery-view/)
