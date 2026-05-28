@@ -241,4 +241,48 @@ SELECT * FROM order_items;
 SELECT '商品表数据' AS info;
 SELECT * FROM products;
 
+-- ============================================
+-- SQL 窗口函数练习数据库初始化
+-- 数据库: sql_study_db4
+-- 包含: 销售表
+-- ============================================
+
+CREATE DATABASE IF NOT EXISTS sql_study_db4;
+USE sql_study_db4;
+
+-- 删除已存在的表（重新初始化）
+DROP TABLE IF EXISTS sales;
+
+-- ============================================
+-- 1. 销售表 (sales)
+-- ============================================
+CREATE TABLE sales (
+    sale_id INT PRIMARY KEY AUTO_INCREMENT COMMENT '销售ID',
+    sale_date DATE COMMENT '销售日期',
+    category VARCHAR(20) COMMENT '商品分类',
+    product_name VARCHAR(50) COMMENT '商品名称',
+    amount DECIMAL(10,2) COMMENT '销售额'
+) COMMENT='销售表';
+
+INSERT INTO sales (sale_date, category, product_name, amount) VALUES
+('2025-01-05', '数码', '手机', 800.00),
+('2025-01-06', '数码', '耳机', 200.00),
+('2025-01-07', '数码', '键盘', 300.00),
+('2025-01-01', '数码', '鼠标', 150.00),
+('2025-01-02', '数码', '手机壳', 50.00),
+('2025-01-03', '服饰', 'T恤', 80.00),
+('2025-01-04', '服饰', '牛仔裤', 200.00),
+('2025-01-05', '服饰', '帽子', 50.00),
+('2025-01-06', '服饰', '鞋子', 300.00),
+('2025-01-07', '服饰', '袜子', 20.00),
+('2025-01-01', '日用品', '水杯', 30.00),
+('2025-01-02', '日用品', '牙刷', 15.00),
+('2025-01-03', '日用品', '毛巾', 20.00),
+('2025-01-04', '日用品', '洗衣液', 40.00),
+('2025-01-05', '日用品', '纸巾', 10.00);
+
+-- 验证数据
+SELECT '销售表数据' AS info;
+SELECT * FROM sales;
+
 SELECT '数据库初始化完成!' AS message;

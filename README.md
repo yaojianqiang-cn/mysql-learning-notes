@@ -10,6 +10,8 @@
 - ✅ 理解 WHERE、ORDER BY、GROUP BY、HAVING 的用法和区别
 - ✅ 熟练运用聚合函数（COUNT、SUM、AVG、MAX、MIN）
 - ✅ 掌握 INNER JOIN、LEFT JOIN 等多表关联查询
+- ✅ 掌握子查询、视图与临时表的使用
+- ✅ 掌握窗口函数（排名、累计、移动平均）
 - ✅ 能够编写复杂的综合查询
 
 ---
@@ -37,9 +39,12 @@ mysql-learning-notes/
 │   ├── exercise-05-join/              # JOIN 关联查询
 │   │   ├── README.md
 │   │   └── exercise-05-answers.sql
-│   └── exercise-06-subquery-view/     # 子查询、视图与临时表 ⭐ 新增
+│   └── exercise-06-subquery-view/     # 子查询、视图与临时表
 │       ├── README.md
 │       └── exercise-06-answers.sql
+│   └── exercise-07-window-function/    # 窗口函数 ⭐ 新增
+│       ├── README.md
+│       └── exercise-07-answers.sql
 ├── notes/                             # 学习笔记
 │   └── key-points.md                  # 知识点总结
 ├── mistakes/                          # 错题总结
@@ -133,6 +138,17 @@ mysql-learning-notes/
 | price | DECIMAL(10,2) | 价格 |
 | category | VARCHAR(20) | 分类 |
 
+### 窗口函数练习数据库 (sql_study_db4)
+
+#### sales（销售表）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| sale_id | INT | 主键，自增 |
+| sale_date | DATE | 销售日期 |
+| category | VARCHAR(20) | 商品分类 |
+| product_name | VARCHAR(50) | 商品名称 |
+| amount | DECIMAL(10,2) | 销售额 |
+
 ---
 
 ## 🚀 快速开始
@@ -160,6 +176,7 @@ source setup/init.sql
 | 综合练习 | 20 | ⭐⭐⭐⭐ 综合 |
 | JOIN 关联查询 | 18 | ⭐⭐⭐ 进阶 |
 | **子查询、视图与临时表** | **15** | **⭐⭐⭐ 进阶** |
+| **窗口函数** | **16** | **⭐⭐⭐⭐ 综合** |
 
 ---
 
@@ -206,7 +223,8 @@ source setup/init.sql
 
 - **2026-05-21：基础查询、聚合函数、分组统计**
 - **2026-05-26：JOIN 关联查询**
-- **2026-05-27：子查询、视图与临时表** ⭐
+- **2026-05-27：子查询、视图与临时表**
+- **2026-05-28：窗口函数** ⭐
 
 ---
 

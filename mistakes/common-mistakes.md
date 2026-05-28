@@ -418,6 +418,124 @@ JOIN order_items oi ON o.order_id = oi.order_id;
 | 子查询返回多行 | 用 = 而不是 IN | 列表子查询用 IN，标量子查询用 = |
 | 视图创建失败 | 视图已存在 | 用 CREATE OR REPLACE VIEW |
 | 字段歧义 | 多表有同名字段 | 加别名明确字段含义 |
+| 排名函数传参 | ROW_NUMBER(amount) | ROW_NUMBER() 是无参函数，括号内不写字段 |
+| 窗口函数用在 WHERE | 直接 WHERE rn <= 2 | 窗口函数需嵌套子查询/CTE 后再过滤 |
+| 移动窗口关键字拼写 | current now | 正确写法为 CURRENT ROW |
+| CTE 字段名引用错误 | 外层用了错误的字段名 | 外层引用必须与内层 CTE 定义的字段名一致 |
+
+---
+
+## 窗口函数常见错误
+
+### 错误14：排名函数括号内写字段名
+
+#### ❌ 错误示例
+```sql
+-- 错误：ROW_NUMBER/RANK/DENSE_RANK 是无参函数
+SELECT *, ROW_NUMBER(amount) OVER (ORDER BY amount DESC) AS rn FROM sales;
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：括号内为空，排序在 OVER 中指定
+SELECT *, ROW_NUMBER() OVER (ORDER BY amount DESC) AS rn FROM sales;
+```
+
+#### 💡 原因分析
+ROW_NUMBER()、RANK()、DENSE_RANK() 都是**无参函数**，排序规则通过 OVER 子句中的 ORDER BY 指定，而不是写在函数参数中。
+
+---
+
+### 错误15：窗口函数直接用在 WHERE 中
+
+#### ❌ 错误示例
+```sql
+-- 错误：窗口函数不能直接用在 WHERE 子句中
+SELECT *, ROW_NUMBER() OVER (PARTITION BY category ORDER BY amount DESC) AS rn
+FROM sales
+WHERE rn <= 2;
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：嵌套子查询，先计算窗口函数，再外层过滤
+SELECT * FROM (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY category ORDER BY amount DESC) AS rn
+    FROM sales
+) t WHERE rn <= 2;
+```
+
+#### 💡 原因分析
+SQL 执行顺序：FROM → WHERE → GROUP BY → HAVING → **窗口函数** → ORDER BY。窗口函数在 WHERE 之后执行，因此 WHERE 中无法引用窗口函数的别名。
+
+---
+
+### 错误16：移动窗口关键字拼写错误
+
+#### ❌ 错误示例
+```sql
+-- 错误：CURRENT ROW 拼写为 current now
+SELECT *, AVG(amount) OVER (ORDER BY sale_date ROWS BETWEEN 1 PRECEDING AND current now) AS moving_avg
+FROM sales;
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：关键字为 CURRENT ROW
+SELECT *, AVG(amount) OVER (ORDER BY sale_date ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS moving_avg
+FROM sales;
+```
+
+#### 💡 原因分析
+窗口范围的关键字是固定语法：`CURRENT ROW`、`UNBOUNDED PRECEDING`、`UNBOUNDED FOLLOWING`、`N PRECEDING`、`N FOLLOWING`，拼写错误会导致语法报错。
+
+---
+
+### 错误17：CTE 字段名引用不一致
+
+#### ❌ 错误示例
+```sql
+-- 错误：内层 CTE 定义的是 category_total，外层误写为 category
+WITH t1 AS (
+    SELECT *, SUM(amount) OVER (PARTITION BY category) AS category_total FROM sales
+)
+SELECT *, amount / category AS percent FROM t1;
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：外层引用必须与内层定义的字段名一致
+WITH t1 AS (
+    SELECT *, SUM(amount) OVER (PARTITION BY category) AS category_total FROM sales
+)
+SELECT *, ROUND(amount * 100 / category_total, 2) AS percent FROM t1;
+```
+
+#### 💡 原因分析
+CTE 或子查询中定义的列别名，在外层查询中必须使用完全相同的名称引用，笔误会导致 "Unknown column" 错误。
+
+---
+
+### 错误18：嵌套子查询内部多加分号
+
+#### ❌ 错误示例
+```sql
+-- 错误：子查询内部的分号会导致 SQL 提前结束
+SELECT * FROM (
+    SELECT *, ROW_NUMBER() OVER (ORDER BY amount DESC) AS rn FROM sales;
+) t WHERE rn <= 2;
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：子查询内部不加分号
+SELECT * FROM (
+    SELECT *, ROW_NUMBER() OVER (ORDER BY amount DESC) AS rn FROM sales
+) t WHERE rn <= 2;
+```
+
+#### 💡 原因分析
+分号是 SQL 语句的结束符，嵌套子查询内部加分号会导致外层 SQL 被截断，引发语法错误。
 
 ---
 
@@ -427,3 +545,4 @@ JOIN order_items oi ON o.order_id = oi.order_id;
 - [练习四：综合练习](../exercises/exercise-04-comprehensive/)
 - [练习五：JOIN 关联查询](../exercises/exercise-05-join/)
 - [练习六：子查询、视图与临时表](../exercises/exercise-06-subquery-view/)
+- [练习七：窗口函数](../exercises/exercise-07-window-function/)
