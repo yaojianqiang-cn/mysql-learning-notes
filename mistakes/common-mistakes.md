@@ -539,6 +539,161 @@ SELECT * FROM (
 
 ---
 
+## 综合练习常见错误
+
+### 错误19：聚合函数嵌套错误
+
+#### ❌ 错误示例
+```sql
+-- 错误：MySQL 不支持 MAX(COUNT(*)) 这类聚合函数嵌套
+SELECT username FROM users
+WHERE user_id = (
+    SELECT user_id FROM orders 
+    GROUP BY user_id 
+    HAVING COUNT(*) = MAX(COUNT(*))
+);
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：子查询中转，先分组统计，再外层求最大值
+SELECT username FROM users
+WHERE user_id = (
+    SELECT user_id FROM orders 
+    GROUP BY user_id 
+    ORDER BY COUNT(*) DESC 
+    LIMIT 1
+);
+
+-- 或者使用窗口函数
+SELECT username FROM (
+    SELECT u.username, RANK() OVER(ORDER BY COUNT(o.order_id) DESC) AS rk
+    FROM users u JOIN orders o ON u.user_id = o.user_id
+    GROUP BY u.user_id, u.username
+) t WHERE rk = 1;
+```
+
+#### 💡 原因分析
+MySQL 不支持聚合函数嵌套（如 `MAX(COUNT(*))`），必须先通过子查询或 CTE 中转分组结果，再在外层进行聚合操作。
+
+---
+
+### 错误20：订单明细金额计算错误
+
+#### ❌ 错误示例
+```sql
+-- 错误：直接用 orders.total_amount 计算占比，导致数据重复计算
+SELECT u.username, o.order_id, oi.product_name,
+       ROUND(oi.price / o.total_amount, 2) AS ratio
+FROM users u
+JOIN orders o ON u.user_id = o.user_id
+JOIN order_items oi ON o.order_id = oi.order_id;
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：商品金额 = quantity * price，占比 = 商品金额 / 订单总金额
+SELECT u.username, o.order_id, oi.product_name, oi.quantity, oi.price,
+       oi.quantity * oi.price AS item_amount,
+       ROUND((oi.quantity * oi.price) / SUM(oi.quantity * oi.price) OVER(PARTITION BY o.order_id), 2) AS ratio
+FROM users u
+JOIN orders o ON u.user_id = o.user_id
+JOIN order_items oi ON o.order_id = oi.order_id;
+```
+
+#### 💡 原因分析
+订单明细类数据必须通过 `quantity * price` 计算真实金额。直接使用 `orders.total_amount` 在 JOIN 后会因一对多关系导致数据重复展开，计算结果虚高。
+
+---
+
+### 错误21：窗口函数占比计算分区错误
+
+#### ❌ 错误示例
+```sql
+-- 错误：全局占比计算时，SUM() 不加 OVER() 或分区错误
+WITH category_sales AS (
+    SELECT category, SUM(quantity * price) AS category_total 
+    FROM order_items 
+    GROUP BY category
+)
+SELECT category, category_total, 
+       category_total / SUM(category_total) AS ratio  -- 错误：SUM 没有 OVER()
+FROM category_sales;
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：使用 SUM() OVER() 计算全局总和
+WITH category_sales AS (
+    SELECT category, SUM(quantity * price) AS category_total 
+    FROM order_items 
+    GROUP BY category
+)
+SELECT category, category_total, 
+       ROUND(category_total / SUM(category_total) OVER(), 2) AS ratio
+FROM category_sales;
+```
+
+#### 💡 原因分析
+计算占比时，分子是分组内的和，分母是全局总和。必须使用 `SUM() OVER()`（不加 PARTITION BY）来获取全局总和，否则会被 GROUP BY 限制为分组内的和。
+
+---
+
+### 错误22：ROUND() 函数括号位置错误
+
+#### ❌ 错误示例
+```sql
+-- 错误：ROUND 函数括号位置错误
+SELECT category, 
+       ROUND(category_total / SUM(category_total) OVER()), 2) AS ratio
+FROM category_sales;
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：ROUND(表达式, 小数位数)
+SELECT category, 
+       ROUND(category_total / SUM(category_total) OVER(), 2) AS ratio
+FROM category_sales;
+```
+
+#### 💡 原因分析
+ROUND() 函数的语法是 `ROUND(数值表达式, 小数位数)`，括号必须包裹整个表达式和小数位数参数，位置错误会导致语法报错。
+
+---
+
+### 错误23：TopN 排序字段选择错误
+
+#### ❌ 错误示例
+```sql
+-- 错误：按单价 price 排序，不是按明细总金额排序
+SELECT * FROM (
+    SELECT u.user_id, u.username, oi.product_name, oi.quantity, oi.price,
+           ROW_NUMBER() OVER(PARTITION BY o.user_id ORDER BY oi.price DESC) AS rn
+    FROM order_items oi 
+    JOIN orders o ON oi.order_id = o.order_id 
+    JOIN users u ON o.user_id = u.user_id
+) t WHERE rn <= 2;
+```
+
+#### ✅ 正确写法
+```sql
+-- 正确：按 quantity * price（明细总金额）排序
+SELECT * FROM (
+    SELECT u.user_id, u.username, oi.product_name, oi.quantity, oi.price,
+           oi.quantity * oi.price AS item_amount,
+           ROW_NUMBER() OVER(PARTITION BY o.user_id ORDER BY oi.quantity * oi.price DESC) AS rn
+    FROM order_items oi 
+    JOIN orders o ON oi.order_id = o.order_id 
+    JOIN users u ON o.user_id = u.user_id
+) t WHERE rn <= 2;
+```
+
+#### 💡 原因分析
+订单明细的真实金额是 `quantity * price`，按单价 `price` 排序会导致结果不符合业务逻辑（如 1 件 100 元的商品 vs 10 件 20 元的商品）。
+
+---
+
 ## 相关练习
 
 - [练习三：GROUP BY + HAVING](../exercises/exercise-03-group-having/)
@@ -546,3 +701,4 @@ SELECT * FROM (
 - [练习五：JOIN 关联查询](../exercises/exercise-05-join/)
 - [练习六：子查询、视图与临时表](../exercises/exercise-06-subquery-view/)
 - [练习七：窗口函数](../exercises/exercise-07-window-function/)
+- [练习八：综合复习](../exercises/exercise-08-comprehensive-review/)

@@ -39,12 +39,15 @@ mysql-learning-notes/
 │   ├── exercise-05-join/              # JOIN 关联查询
 │   │   ├── README.md
 │   │   └── exercise-05-answers.sql
-│   └── exercise-06-subquery-view/     # 子查询、视图与临时表
+│   ├── exercise-06-subquery-view/     # 子查询、视图与临时表
+│   │   ├── README.md
+│   │   └── exercise-06-answers.sql
+│   ├── exercise-07-window-function/    # 窗口函数
+│   │   ├── README.md
+│   │   └── exercise-07-answers.sql
+│   └── exercise-08-comprehensive-review/  # 综合复习 ⭐ 新增
 │       ├── README.md
-│       └── exercise-06-answers.sql
-│   └── exercise-07-window-function/    # 窗口函数 ⭐ 新增
-│       ├── README.md
-│       └── exercise-07-answers.sql
+│       └── exercise-08-answers.sql
 ├── notes/                             # 学习笔记
 │   └── key-points.md                  # 知识点总结
 ├── mistakes/                          # 错题总结
@@ -175,8 +178,9 @@ source setup/init.sql
 | GROUP BY + HAVING | 10 | ⭐⭐⭐ 进阶 |
 | 综合练习 | 20 | ⭐⭐⭐⭐ 综合 |
 | JOIN 关联查询 | 18 | ⭐⭐⭐ 进阶 |
-| **子查询、视图与临时表** | **15** | **⭐⭐⭐ 进阶** |
-| **窗口函数** | **16** | **⭐⭐⭐⭐ 综合** |
+| 子查询、视图与临时表 | 15 | ⭐⭐⭐ 进阶 |
+| 窗口函数 | 16 | ⭐⭐⭐⭐ 综合 |
+| **综合复习** | **20** | **⭐⭐⭐⭐⭐ 综合** |
 
 ---
 
@@ -224,7 +228,8 @@ source setup/init.sql
 - **2026-05-21：基础查询、聚合函数、分组统计**
 - **2026-05-26：JOIN 关联查询**
 - **2026-05-27：子查询、视图与临时表**
-- **2026-05-28：窗口函数** ⭐
+- **2026-05-28：窗口函数**
+- **2026-06-01：综合复习** ⭐
 
 ---
 

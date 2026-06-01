@@ -285,4 +285,91 @@ INSERT INTO sales (sale_date, category, product_name, amount) VALUES
 SELECT '销售表数据' AS info;
 SELECT * FROM sales;
 
+-- ============================================
+-- SQL 综合复习练习数据库初始化
+-- 数据库: sql_review_db234
+-- 包含: 用户表、订单表、订单明细表
+-- ============================================
+
+CREATE DATABASE IF NOT EXISTS sql_review_db234;
+USE sql_review_db234;
+
+-- 删除已存在的表（重新初始化）
+DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS users;
+
+-- ============================================
+-- 1. 用户表 (users)
+-- ============================================
+CREATE TABLE users (
+    user_id INT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
+    username VARCHAR(50) COMMENT '用户名',
+    city VARCHAR(50) COMMENT '城市'
+) COMMENT='用户表';
+
+INSERT INTO users (username, city) VALUES
+('张三', '北京'),
+('李四', '上海'),
+('王五', '广州'),
+('赵六', '深圳'),
+('孙七', '北京');
+
+-- ============================================
+-- 2. 订单表 (orders)
+-- ============================================
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY AUTO_INCREMENT COMMENT '订单ID',
+    user_id INT COMMENT '用户ID',
+    order_date DATE COMMENT '订单日期',
+    total_amount DECIMAL(10,2) COMMENT '订单总金额',
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+) COMMENT='订单表';
+
+INSERT INTO orders (user_id, order_date, total_amount) VALUES
+(1, '2025-01-05', 899.00),
+(1, '2025-01-10', 299.00),
+(2, '2025-01-06', 1299.00),
+(2, '2025-01-15', 199.00),
+(3, '2025-01-07', 599.00),
+(4, '2025-01-08', 799.00),
+(4, '2025-01-12', 399.00),
+(5, '2025-01-09', 499.00);
+
+-- ============================================
+-- 3. 订单明细表 (order_items)
+-- ============================================
+CREATE TABLE order_items (
+    item_id INT PRIMARY KEY AUTO_INCREMENT COMMENT '明细ID',
+    order_id INT COMMENT '订单ID',
+    product_name VARCHAR(50) COMMENT '商品名称',
+    category VARCHAR(20) COMMENT '商品分类',
+    quantity INT COMMENT '数量',
+    price DECIMAL(10,2) COMMENT '单价',
+    FOREIGN KEY (order_id) REFERENCES orders(order_id)
+) COMMENT='订单明细表';
+
+INSERT INTO order_items (order_id, product_name, category, quantity, price) VALUES
+(1, '手机', '数码', 1, 899.00),
+(2, '耳机', '数码', 1, 299.00),
+(3, '笔记本', '数码', 1, 1299.00),
+(4, '袜子', '服饰', 2, 19.90),
+(5, '键盘', '数码', 1, 599.00),
+(6, '水杯', '日用品', 1, 29.90),
+(6, '毛巾', '日用品', 2, 15.00),
+(7, 'T恤', '服饰', 1, 99.00),
+(7, '牛仔裤', '服饰', 1, 299.00),
+(8, '鼠标', '数码', 1, 199.00),
+(8, '帽子', '服饰', 1, 49.00);
+
+-- 验证数据
+SELECT '用户表数据' AS info;
+SELECT * FROM users;
+
+SELECT '订单表数据' AS info;
+SELECT * FROM orders;
+
+SELECT '订单明细表数据' AS info;
+SELECT * FROM order_items;
+
 SELECT '数据库初始化完成!' AS message;
